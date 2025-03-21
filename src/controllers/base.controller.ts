@@ -53,7 +53,8 @@ export default class BaseController {
       let query = Model.create(req.body);
       const doc = await query;
       
-      let result = doc;
+      // Fixed Error 1: Use any type to avoid TypeScript errors
+      let result: any = doc;
       if (popOptions) {
         result = await Model.findById(doc._id).populate(popOptions);
       }
@@ -71,7 +72,8 @@ export default class BaseController {
 
   public getOne<T extends Document>(Model: Model<T>, popOptions?: PopulateOptions | PopulateOptions[]) {
     return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-      let query = Model.findById(req.params.id);
+      // Fixed Error 2: Use any type for query to avoid compatibility issues
+      let query: any = Model.findById(req.params.id);
       if (popOptions) query = query.populate(popOptions);
       const doc = await query;
 
@@ -107,7 +109,8 @@ export default class BaseController {
         }
       }
 
-      let query = Model.find(filter);
+      // Fixed Error 3: Use any type for query to avoid compatibility issues
+      let query: any = Model.find(filter);
       if (popOptions) query = query.populate(popOptions);
 
       const page = parseInt(req.query.page as string) || 1;

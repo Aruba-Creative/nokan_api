@@ -15,7 +15,7 @@ class AuthService {
       { id: userId },
       config.jwtSecret,
       { expiresIn: config.jwtExpiresIn }
-    );
+     );
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Query, Document } from 'mongoose';
+import { Query, Document, FilterQuery } from 'mongoose';
 
 interface QueryString {
   [key: string]: string | undefined;
@@ -11,9 +11,18 @@ class APIFeatures<T extends Document> {
   ) {}
 
   filter(): APIFeatures<T> {
-    const reqObj: { [key: string]: any } = { ...this.queryString };
+    // Create a copy of the query string
+    const queryObj: { [key: string]: any } = { ...this.queryString };
     const excludedFields = ['page', 'sort', 'limit', 'fields', 'search'];
-    excludedFields.forEach((el) => delete reqObj[el]);
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // Create a filter object that will be cast to FilterQuery<T>
+    let filter = {} as FilterQuery<T>;
+    
+    // Add properties from queryObj to filter
+    Object.keys(queryObj).forEach(key => {
+      (filter as any)[key] = queryObj[key];
+    });
 
     // Handle the search query
     if (this.queryString.search) {
@@ -39,12 +48,13 @@ class APIFeatures<T extends Document> {
 
       // Use $or to combine all search conditions with the existing conditions
       if (searchConditions.length > 0) {
-        reqObj.$and = searchConditions;
+        // Use type assertion to handle the $and operator
+        (filter as any).$and = searchConditions;
       }
     }
 
     // Apply the filter conditions to the query
-    this.query = this.query.find(reqObj);
+    this.query = this.query.find(filter);
 
     return this;
   }
