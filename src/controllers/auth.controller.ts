@@ -1,36 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
 import User, { IUser } from '@/models/user.model';
 import catchAsync from '@/utils/catch-async';
 import AppError from '@/utils/app-error';
-
-interface JwtPayload {
-  id: string;
-  iat: number;
-}
+import config from '@/config';
+import { signToken, verifyToken } from '@/utils/jwt.utils';
 
 class AuthController {
-  private signToken(id: string): string {
-    return jwt.sign(
-      { id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-  }
-
   private createSendToken(
     user: IUser,
     statusCode: number,
     req: Request,
     res: Response
   ): void {
-    const token = this.signToken(user._id.toString());
+    const token = signToken({ id: user._id.toString() });
 
     const cookieOptions = {
       expires: new Date(
-        Date.now() + 
-        parseInt(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
+        Date.now() + config.jwtCookieExpiresIn * 24 * 60 * 60 * 1000
       ),
       httpOnly: true,
       secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
@@ -119,38 +105,41 @@ class AuthController {
     }
 
     // 2) Verification token
-    const decoded = await promisify<string, string, JwtPayload>(jwt.verify)(
-      token,
-      process.env.JWT_SECRET
-    );
+    try {
+      const decoded = await verifyToken(token);
 
-    // 3) Check if user still exists
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
+      // 3) Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next(
+          new AppError(
+            'The user belonging to this token does no longer exist!',
+            401
+          )
+        );
+      }
+
+      if (currentUser.blocked) {
+        return next(
+          new AppError('This user is blocked and cannot access this route!', 403)
+        );
+      }
+
+      // 4) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next(
+          new AppError('User recently changed password! Please login again.', 401)
+        );
+      }
+
+      // GRANT ACCESS TO PROTECTED ROUTE
+      req.user = currentUser;
+      next();
+    } catch (err) {
       return next(
-        new AppError(
-          'The user belonging to this token does no longer exist!',
-          401
-        )
+        new AppError('Invalid token or session expired. Please log in again.', 401)
       );
     }
-
-    if (currentUser.blocked) {
-      return next(
-        new AppError('This user is blocked and cannot access this route!', 403)
-      );
-    }
-
-    // 4) Check if user changed password after the token was issued
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return next(
-        new AppError('User recently changed password! Please login again.', 401)
-      );
-    }
-
-    // GRANT ACCESS TO PROTECTED ROUTE
-    req.user = currentUser;
-    next();
   });
 
   public restrictTo = (...roles: string[]) => {
