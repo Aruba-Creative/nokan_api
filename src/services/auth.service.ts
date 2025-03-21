@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User, { IUser, UserRole } from '@/models/user.model';
 import AppError from '@/utils/app-error';
 import config from '@/config';
+import { SignOptions } from 'jsonwebtoken';
 
 /**
  * Service layer for handling authentication-related business logic
@@ -11,11 +12,12 @@ class AuthService {
    * Sign JWT token
    */
   private signToken(userId: string): string {
+    // Fix the typing issues by properly casting the secret and options
     return jwt.sign(
       { id: userId },
-      config.jwtSecret,
-      { expiresIn: config.jwtExpiresIn }
-     );
+      config.jwtSecret as jwt.Secret,
+      { expiresIn: config.jwtExpiresIn } as SignOptions
+    );
   }
 
   /**
