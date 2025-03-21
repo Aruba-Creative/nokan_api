@@ -41,12 +41,13 @@ class UserController extends BaseController {
 
     // Remove password from response
     const userObj = newUser.toObject();
-    delete userObj.password;
+    // Fix for TS2790: Create a new object without the password property
+    const { password, ...userWithoutPassword } = userObj;
 
     res.status(201).json({
       status: 'success',
       data: {
-        user: userObj,
+        user: userWithoutPassword,
       },
     });
   });

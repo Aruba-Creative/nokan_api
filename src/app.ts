@@ -1,8 +1,8 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
-import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
-import hpp from 'hpp';
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 import compression from 'compression';
 import cors from 'cors';
 import path from 'path';
