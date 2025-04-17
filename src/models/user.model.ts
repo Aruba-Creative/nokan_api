@@ -1,16 +1,12 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import moment from 'moment-timezone';
-
-export enum UserRole {
-  SUPER_ADMIN = 'superAdmin',
-  ADMIN = 'admin',
-}
+import { IRole } from './role.model';
 
 export interface IUser extends Document {
   name: string;
   username: string;
-  role: UserRole;
+  role: Types.ObjectId | IRole; // Changed from enum to reference
   blocked: boolean;
   password: string;
   passwordConfirm?: string;
@@ -21,6 +17,7 @@ export interface IUser extends Document {
 
   correctPassword(candidatePassword: string, userPassword: string): Promise<boolean>;
   changedPasswordAfter(timestamp: number): boolean;
+  hasPermission(permissionName: string): Promise<boolean>;
 }
 
 interface IUserModel extends Model<IUser> {
@@ -46,9 +43,9 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
     },
     role: {
-      type: String,
-      enum: Object.values(UserRole),
-      required: [true, 'Please choose the role!'],
+      type: Schema.Types.ObjectId,
+      ref: 'Role',
+      required: [true, 'Please assign a role!'],
     },
     blocked: {
       type: Boolean,
@@ -105,6 +102,17 @@ userSchema.pre<IUser>('save', function (next) {
   next();
 });
 
+// Automatically populate the role field with permissions
+userSchema.pre(/^find/, function (this: mongoose.Query<any, any>) {
+  this.populate({
+    path: 'role',
+    populate: {
+      path: 'permissions',
+      model: 'Permission'
+    }
+  });
+});
+
 userSchema.methods.correctPassword = async function (
   candidatePassword: string,
   userPassword: string
@@ -123,6 +131,32 @@ userSchema.methods.changedPasswordAfter = function (
     return JWTTimeStamp < changedTimeStamp;
   }
   return false;
+};
+
+// Method to check if user has a specific permission
+userSchema.methods.hasPermission = async function (
+  permissionName: string
+): Promise<boolean> {
+  // Make sure the role is populated with permissions
+  if (!this.populated('role')) {
+    await this.populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        model: 'Permission'
+      }
+    });
+  }
+
+  const userRole = this.role as IRole;
+  
+  if (!userRole || !userRole.permissions) {
+    return false;
+  }
+
+  return userRole.permissions.some((permission: any) => 
+    permission.name === permissionName
+  );
 };
 
 // Middleware to filter out inactive users

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '@/models/user.model';
+import Role from '@/models/role.model';
 import catchAsync from '@/utils/catch-async';
 import BaseController from './base.controller';
 import AppError from '@/utils/app-error';
@@ -14,15 +15,23 @@ class UserController extends BaseController {
 
   public getAllUsers = this.getAll(User);
 
-  public getUserByID = this.getOne(User);
+  public getUserByID = this.getOne(User, { path: 'role', populate: { path: 'permissions' } });
 
   public conditionForCreatingUser = catchAsync(async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
-    // Implement your conditions here
-    // For example, validating role assignments or checking permissions
+    // Validate the role exists
+    if (!req.body.role) {
+      return next(new AppError('Role is required', 400));
+    }
+
+    const role = await Role.findById(req.body.role);
+    if (!role) {
+      return next(new AppError('Invalid role ID', 400));
+    }
+
     next();
   });
 
@@ -37,6 +46,12 @@ class UserController extends BaseController {
       role: req.body.role,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+    });
+
+    // Populate the role with permissions for the response
+    await newUser.populate({
+      path: 'role',
+      populate: { path: 'permissions' }
     });
 
     // Remove password from response
@@ -68,6 +83,14 @@ class UserController extends BaseController {
       );
     }
 
+    // If role is being updated, validate it exists
+    if (req.body.role) {
+      const role = await Role.findById(req.body.role);
+      if (!role) {
+        return next(new AppError('Invalid role ID', 400));
+      }
+    }
+
     next();
   });
 
@@ -89,7 +112,10 @@ class UserController extends BaseController {
         new: true,
         runValidators: true,
       }
-    );
+    ).populate({
+      path: 'role',
+      populate: { path: 'permissions' }
+    });
 
     if (!updatedUser) {
       return next(new AppError('No user found with that ID', 404));

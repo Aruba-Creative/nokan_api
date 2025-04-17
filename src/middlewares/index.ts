@@ -1,5 +1,6 @@
 // Auth middlewares
-export { protect, restrictTo } from './auth.middleware';
+export { protect } from './auth.middleware';
+export { hasPermission } from './permission.middleware';
 
 // Error handling middlewares
 export { notFoundHandler, errorLogger } from './error.middleware';

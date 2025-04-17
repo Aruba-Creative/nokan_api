@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '@/models/user.model';
+import Role from '@/models/role.model';
 import catchAsync from '@/utils/catch-async';
 import AppError from '@/utils/app-error';
 import config from '@/config';
@@ -46,10 +47,16 @@ class AuthController {
       return next(new AppError('Sorry, this route is no longer available.', 403));
     }
 
+    // Find superAdmin role for first user
+    const superAdminRole = await Role.findOne({ name: 'superAdmin' });
+    if (!superAdminRole) {
+      return next(new AppError('SuperAdmin role not found. Please run seed script first.', 500));
+    }
+
     const newUser = await User.create({
       name: req.body.name,
       username: req.body.username,
-      role: req.body.role,
+      role: superAdminRole._id,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
       passwordChangedAt: req.body.passwordChangedAt,
@@ -141,17 +148,6 @@ class AuthController {
       );
     }
   });
-
-  public restrictTo = (...roles: string[]) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-      if (!req.user || !roles.includes(req.user.role)) {
-        return next(
-          new AppError('You do not have permission to perform this action', 403)
-        );
-      }
-      next();
-    };
-  };
 
   public updatePassword = catchAsync(async (
     req: Request,

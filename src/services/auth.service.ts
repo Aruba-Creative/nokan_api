@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User, { IUser, UserRole } from '@/models/user.model';
+import User, { IUser } from '@/models/user.model';
 import AppError from '@/utils/app-error';
 import config from '@/config';
 import { SignOptions } from 'jsonwebtoken';
@@ -26,7 +26,7 @@ class AuthService {
   public async signup(userData: {
     name: string;
     username: string;
-    role: UserRole;
+    role: string;
     password: string;
     passwordConfirm: string;
   }): Promise<{ token: string; user: IUser }> {

@@ -1,4 +1,4 @@
-import User, { IUser, UserRole } from '@/models/user.model';
+import User, { IUser } from '@/models/user.model';
 import AppError from '@/utils/app-error';
 
 /**
@@ -29,7 +29,7 @@ class UserService {
   public async create(userData: {
     name: string;
     username: string;
-    role: UserRole;
+    role: string;
     password: string;
     passwordConfirm: string;
   }): Promise<IUser> {
@@ -50,7 +50,7 @@ class UserService {
     updateData: {
       name?: string;
       username?: string;
-      role?: UserRole;
+      role?: string;
       blocked?: boolean;
     }
   ): Promise<IUser> {
