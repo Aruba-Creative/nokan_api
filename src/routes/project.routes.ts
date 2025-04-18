@@ -42,4 +42,20 @@ router
     projectController.updateStage)
   .delete(hasPermission('project:update'), projectController.deleteStage);
 
+// Image upload routes for stages
+router
+  .route('/:id/stages/:stageId/images')
+  .post(
+    hasPermission('project:update'),
+    upload.array('images', 5), // Allow up to 5 images to be uploaded at once
+    projectController.uploadStageImages
+  );
+
+router
+  .route('/:id/stages/:stageId/images/:imageIndex')
+  .delete(
+    hasPermission('project:update'),
+    projectController.deleteStageImage
+  );
+
 export default router;
