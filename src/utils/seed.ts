@@ -41,6 +41,18 @@ const initialPermissions = [
   { name: 'permission:update', description: 'Update permission details' },
   { name: 'permission:delete', description: 'Delete permissions' },
 
+  // Project permissions (new)
+  { name: 'project:create', description: 'Create projects' },
+  { name: 'project:read', description: 'Read project information' },
+  { name: 'project:update', description: 'Update project details' },
+  { name: 'project:delete', description: 'Delete projects' },
+
+  // Link permissions (new)
+  { name: 'link:create', description: 'Create links' },
+  { name: 'link:read', description: 'Read link information' },
+  { name: 'link:update', description: 'Update link details' },
+  { name: 'link:delete', description: 'Delete links' },
+
   // Add more domain-specific permissions as needed
 ];
 
@@ -97,7 +109,14 @@ const importData = async () => {
             permissionMap['user:create'],
             permissionMap['user:update'],
             permissionMap['role:read'],
-            permissionMap['permission:read']
+            permissionMap['permission:read'],
+            // Adding new project and link permissions for admin
+            permissionMap['project:read'],
+            permissionMap['project:create'],
+            permissionMap['project:update'],
+            permissionMap['link:read'],
+            permissionMap['link:create'],
+            permissionMap['link:update']
           ]
         };
       } else if (role.name === 'user') {
@@ -105,7 +124,10 @@ const importData = async () => {
         return {
           ...role,
           permissions: [
-            permissionMap['user:read']
+            permissionMap['user:read'],
+            // Adding read-only access to projects for regular users
+            permissionMap['project:read'],
+            permissionMap['link:read']
           ]
         };
       }

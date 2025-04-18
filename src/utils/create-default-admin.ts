@@ -35,20 +35,35 @@ export const createDefaultAdmin = async (): Promise<void> => {
         
         // Create default permissions
         const defaultPermissions = [
+          // User permissions
           { name: 'user:create', description: 'Create users' },
           { name: 'user:read', description: 'Read user information' },
           { name: 'user:update', description: 'Update user details' },
           { name: 'user:delete', description: 'Delete users' },
           
+          // Role permissions
           { name: 'role:create', description: 'Create roles' },
           { name: 'role:read', description: 'Read role information' },
           { name: 'role:update', description: 'Update role details' },
           { name: 'role:delete', description: 'Delete roles' },
           
+          // Permission permissions
           { name: 'permission:create', description: 'Create permissions' },
           { name: 'permission:read', description: 'Read permission information' },
           { name: 'permission:update', description: 'Update permission details' },
           { name: 'permission:delete', description: 'Delete permissions' },
+          
+          // Project permissions (new)
+          { name: 'project:create', description: 'Create projects' },
+          { name: 'project:read', description: 'Read project information' },
+          { name: 'project:update', description: 'Update project details' },
+          { name: 'project:delete', description: 'Delete projects' },
+
+          // Link permissions (new)
+          { name: 'link:create', description: 'Create links' },
+          { name: 'link:read', description: 'Read link information' },
+          { name: 'link:update', description: 'Update link details' },
+          { name: 'link:delete', description: 'Delete links' },
         ];
         
         const createdPermissions = await Permission.insertMany(defaultPermissions);
