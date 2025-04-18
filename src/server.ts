@@ -3,6 +3,7 @@ import './paths';
 import mongoose from 'mongoose';
 import app from './app';
 import config from './config';
+import createDefaultAdmin from './utils/create-default-admin';
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err: Error) => {
@@ -18,6 +19,9 @@ const connectDB = async () => {
       // No need to specify options in Mongoose 7+, they're set by default
     });
     console.log('📊 DB Connected Successfully!');
+    
+    // Create default admin after successful database connection
+    await createDefaultAdmin();
   } catch (err) {
     console.error('❌ Error connecting to the database:', err);
     process.exit(1);

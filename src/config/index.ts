@@ -13,7 +13,7 @@ export default {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '90d',
   jwtCookieExpiresIn: parseInt(process.env.JWT_COOKIE_EXPIRES_IN || '90', 10),
   clientUrls: {
-    development: ['http://localhost:3000'],
+    development: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
     production: ['https://yourproduction.com']
   }
 };
