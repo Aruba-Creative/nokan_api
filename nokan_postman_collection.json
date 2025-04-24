@@ -1,0 +1,1017 @@
+{
+    "info": {
+      "name": "Nokan API",
+      "description": "Postman collection for Nokan API with TypeScript",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Authentication",
+        "item": [
+          {
+            "name": "Login",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            ""
+          ]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "// Auto-extract authentication token",
+            "if (pm.response.code === 200 || pm.response.code === 201) {",
+            "    if (pm.response.json().token) {",
+            "        pm.environment.set('auth_token', pm.response.json().token);",
+            "        console.log('Auth token extracted and saved to environment variable');",
+            "    }",
+            "}",
+            "",
+            "// Tests for successful responses",
+            "if (pm.response.code >= 200 && pm.response.code < 300) {",
+            "    pm.test('Status code is ' + pm.response.code, function() {",
+            "        pm.response.to.have.status(pm.response.code);",
+            "    });",
+            "    ",
+            "    pm.test('Response has the correct format', function() {",
+            "        pm.response.to.be.json;",
+            "        const jsonData = pm.response.json();",
+            "        pm.expect(jsonData).to.be.an('object');",
+            "    });",
+            "}",
+            "",
+            "// Extract IDs for subsequent requests",
+            "if (pm.response.code === 201) {",
+            "    const jsonData = pm.response.json();",
+            "    ",
+            "    if (jsonData.data) {",
+            "        // Extract user ID",
+            "        if (jsonData.data.user && jsonData.data.user._id) {",
+            "            pm.environment.set('user_id', jsonData.data.user._id);",
+            "            console.log('User ID extracted: ' + jsonData.data.user._id);",
+            "        }",
+            "        ",
+            "        // Extract role ID",
+            "        if (jsonData.data.role && jsonData.data.role._id) {",
+            "            pm.environment.set('role_id', jsonData.data.role._id);",
+            "            console.log('Role ID extracted: ' + jsonData.data.role._id);",
+            "        }",
+            "        ",
+            "        // Extract permission ID",
+            "        if (jsonData.data.permission && jsonData.data.permission._id) {",
+            "            pm.environment.set('permission_id', jsonData.data.permission._id);",
+            "            console.log('Permission ID extracted: ' + jsonData.data.permission._id);",
+            "        }",
+            "        ",
+            "        // Extract project ID",
+            "        if (jsonData.data.project && jsonData.data.project._id) {",
+            "            pm.environment.set('project_id', jsonData.data.project._id);",
+            "            console.log('Project ID extracted: ' + jsonData.data.project._id);",
+            "        }",
+            "        ",
+            "        // Extract stage ID from project",
+            "        if (jsonData.data.project && jsonData.data.project.stages && jsonData.data.project.stages.length > 0) {",
+            "            pm.environment.set('stage_id', jsonData.data.project.stages[0]._id);",
+            "            console.log('Stage ID extracted: ' + jsonData.data.project.stages[0]._id);",
+            "        }",
+            "        ",
+            "        // Extract link ID",
+            "        if (jsonData.data.link && jsonData.data.link._id) {",
+            "            pm.environment.set('link_id', jsonData.data.link._id);",
+            "            console.log('Link ID extracted: ' + jsonData.data.link._id);",
+            "        }",
+            "    }",
+            "}"
+          ]
+        }
+      }
+    ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/auth/login",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "auth", "login"]
+              },
+              "description": "Login to the system and get a JWT token"
+            },
+            "response": []
+          },
+          {
+            "name": "Signup (First Admin)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Super Admin\",\n    \"username\": \"superadmin\",\n    \"password\": \"password123\",\n    \"passwordConfirm\": \"password123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/auth/signup",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "auth", "signup"]
+              },
+              "description": "Signup route for the first admin (only works if no users exist in the system)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Password",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"passwordCurrent\": \"admin123\",\n    \"password\": \"newpassword123\",\n    \"passwordConfirm\": \"newpassword123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/auth/updatePassword",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "auth", "updatePassword"]
+              },
+              "description": "Update the logged-in user's password"
+            },
+            "response": []
+          }
+        ],
+        "description": "Authentication related endpoints"
+      },
+      {
+        "name": "Users",
+        "item": [
+          {
+            "name": "Get All Users",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/users",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "users"]
+              },
+              "description": "Get a list of all users (requires 'user:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get User By ID",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/users/{{user_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "users", "{{user_id}}"]
+              },
+              "description": "Get details of a specific user by ID (requires 'user:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get My Profile",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/users/me",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "users", "me"]
+              },
+              "description": "Get the profile of the currently logged-in user"
+            },
+            "response": []
+          },
+          {
+            "name": "Create User",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Test User\",\n    \"username\": \"testuser\",\n    \"password\": \"password123\",\n    \"passwordConfirm\": \"password123\",\n    \"role\": \"{{role_id}}\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/users",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "users"]
+              },
+              "description": "Create a new user (requires 'user:create' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update User",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Updated Name\",\n    \"username\": \"updatedusername\",\n    \"role\": \"{{role_id}}\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/users/{{user_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "users", "{{user_id}}"]
+              },
+              "description": "Update a specific user (requires 'user:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete User",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/users/{{user_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "users", "{{user_id}}"]
+              },
+              "description": "Delete a specific user (requires 'user:delete' permission)"
+            },
+            "response": []
+          }
+        ],
+        "description": "User management endpoints"
+      },
+      {
+        "name": "Roles",
+        "item": [
+          {
+            "name": "Get All Roles",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/roles",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "roles"]
+              },
+              "description": "Get a list of all roles (requires 'role:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Role By ID",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/roles/{{role_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "roles", "{{role_id}}"]
+              },
+              "description": "Get details of a specific role by ID (requires 'role:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Create Role",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"editor\",\n    \"description\": \"Editor with limited permissions\",\n    \"permissions\": [\"{{permission_id1}}\", \"{{permission_id2}}\"]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/roles",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "roles"]
+              },
+              "description": "Create a new role (requires 'role:create' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Role",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"updated-editor\",\n    \"description\": \"Updated role description\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/roles/{{role_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "roles", "{{role_id}}"]
+              },
+              "description": "Update a specific role (requires 'role:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Role Permissions",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"permissions\": [\"{{permission_id1}}\", \"{{permission_id2}}\", \"{{permission_id3}}\"]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/roles/{{role_id}}/permissions",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "roles", "{{role_id}}", "permissions"]
+              },
+              "description": "Update the permissions assigned to a role (requires 'role:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Role",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/roles/{{role_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "roles", "{{role_id}}"]
+              },
+              "description": "Delete a specific role (requires 'role:delete' permission)"
+            },
+            "response": []
+          }
+        ],
+        "description": "Role management endpoints"
+      },
+      {
+        "name": "Permissions",
+        "item": [
+          {
+            "name": "Get All Permissions",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/permissions",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "permissions"]
+              },
+              "description": "Get a list of all permissions (requires 'permission:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Permission By ID",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/permissions/{{permission_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "permissions", "{{permission_id}}"]
+              },
+              "description": "Get details of a specific permission by ID (requires 'permission:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Create Permission",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"custom:action\",\n    \"description\": \"Custom permission for a specific action\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/permissions",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "permissions"]
+              },
+              "description": "Create a new permission (requires 'permission:create' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Permission",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"updated:action\",\n    \"description\": \"Updated permission description\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/permissions/{{permission_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "permissions", "{{permission_id}}"]
+              },
+              "description": "Update a specific permission (requires 'permission:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Permission",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/permissions/{{permission_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "permissions", "{{permission_id}}"]
+              },
+              "description": "Delete a specific permission (requires 'permission:delete' permission)"
+            },
+            "response": []
+          }
+        ],
+        "description": "Permission management endpoints"
+      },
+      {
+        "name": "Projects",
+        "item": [
+          {
+            "name": "Get All Projects",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects"]
+              },
+              "description": "Get a list of all projects (requires 'project:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Project By ID",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}"]
+              },
+              "description": "Get details of a specific project by ID (requires 'project:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Create Project",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"Building Construction Project\",\n    \"description\": \"A multi-phase building construction project\",\n    \"stages\": [\n        {\n            \"name\": \"Foundation\",\n            \"description\": \"Foundation laying phase\",\n            \"images\": []\n        }\n    ]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects"]
+              },
+              "description": "Create a new project (requires 'project:create' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Project",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"Updated Building Project\",\n    \"description\": \"Updated project description\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}"]
+              },
+              "description": "Update a specific project (requires 'project:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Project",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}"]
+              },
+              "description": "Delete a specific project (requires 'project:delete' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Add Stage to Project",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Walls and Columns\",\n    \"description\": \"Construction of walls and structural columns\",\n    \"images\": []\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}/stages",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}", "stages"]
+              },
+              "description": "Add a new stage to a project (requires 'project:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Project Stage",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Updated Stage Name\",\n    \"description\": \"Updated stage description\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}/stages/{{stage_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}", "stages", "{{stage_id}}"]
+              },
+              "description": "Update a specific stage within a project (requires 'project:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Project Stage",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}/stages/{{stage_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}", "stages", "{{stage_id}}"]
+              },
+              "description": "Delete a specific stage from a project (requires 'project:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Upload Stage Images",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "formdata",
+                "formdata": [
+                  {
+                    "key": "images",
+                    "type": "file",
+                    "src": []
+                  }
+                ]
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}/stages/{{stage_id}}/images",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}", "stages", "{{stage_id}}", "images"]
+              },
+              "description": "Upload images for a specific stage (requires 'project:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Stage Image",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/projects/{{project_id}}/stages/{{stage_id}}/images/{{image_index}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "projects", "{{project_id}}", "stages", "{{stage_id}}", "images", "{{image_index}}"]
+              },
+              "description": "Delete a specific image from a stage (requires 'project:update' permission)"
+            },
+            "response": []
+          }
+        ],
+        "description": "Project management endpoints"
+      },
+      {
+        "name": "Links",
+        "item": [
+          {
+            "name": "Get All Links",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/links",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links"]
+              },
+              "description": "Get a list of all links (requires 'link:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Link By ID",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/links/{{link_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links", "{{link_id}}"]
+              },
+              "description": "Get details of a specific link by ID (requires 'link:read' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Create Link",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"project\": \"{{project_id}}\",\n    \"startDate\": \"2023-06-01T00:00:00.000Z\",\n    \"endDate\": \"2023-12-31T23:59:59.000Z\",\n    \"isActive\": true\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/links",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links"]
+              },
+              "description": "Create a new link for a project (requires 'link:create' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Update Link",
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"startDate\": \"2023-07-01T00:00:00.000Z\",\n    \"endDate\": \"2024-06-30T23:59:59.000Z\",\n    \"isActive\": true\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/api/v1/links/{{link_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links", "{{link_id}}"]
+              },
+              "description": "Update a specific link (requires 'link:update' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Link",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/links/{{link_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links", "{{link_id}}"]
+              },
+              "description": "Delete a specific link (requires 'link:delete' permission)"
+            },
+            "response": []
+          },
+          {
+            "name": "Access Link (Public)",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{base_url}}/api/v1/links/access/{{link_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links", "access", "{{link_id}}"]
+              },
+              "description": "Public endpoint to access a link and view project information"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Link Statistics",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/api/v1/links/{{link_id}}/stats",
+                "host": ["{{base_url}}"],
+                "path": ["api", "v1", "links", "{{link_id}}", "stats"]
+              },
+              "description": "Get visitor statistics for a specific link (requires 'link:read' permission)"
+            },
+            "response": []
+          }
+        ],
+        "description": "Link management endpoints"
+      }
+    ],
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:5000",
+        "type": "string"
+      },
+      {
+        "key": "auth_token",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "user_id",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "role_id",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "permission_id",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "project_id",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "stage_id",
+        "value": "",
+        "type": "string" 
+      },
+      {
+        "key": "link_id",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "image_index",
+        "value": "0",
+        "type": "string"
+      },
+      {
+        "key": "permission_id1",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "permission_id2",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "permission_id3",
+        "value": "",
+        "type": "string"
+      }
+    ]
+}
