@@ -8,7 +8,7 @@ type AsyncFunction = (
 
 export const catchAsync = (fn: AsyncFunction) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    fn(req, res, next).catch(next);
   };
 };
 

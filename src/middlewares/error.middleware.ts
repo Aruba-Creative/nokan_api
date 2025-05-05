@@ -15,6 +15,7 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
  */
 export const errorLogger = (err: Error, req: Request, res: Response, next: NextFunction): void => {
   console.error(`Error: ${err.message}`);
+  
   if (process.env.NODE_ENV === 'development') {
     console.error(err.stack);
   }
